@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, jsonify
 import json
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -9,13 +9,15 @@ import time
 import json
 
 app = Flask(__name__)
-
+app.config['JSON_AS_ASCII'] = False  # Ensure non-ASCII characters are not escaped
+app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False 
 def extract_shopee_title(driver):
     try:
         title = driver.find_element(By.CSS_SELECTOR, ".two-line-text > span").text
+        
         return title
-    except:
-        print("extract shopee title is failed")
+    except Exception as e:
+        print(f"Error extracting shopee title: {str(e)}")
         
     return "Title not found"
 
@@ -155,7 +157,6 @@ def scrape_shopee_product():
         try:
             product_title = extract_shopee_title(driver)
             product_images = extract_shopee_images(driver)
-        
         except Exception as e:
             print(f"Error extracting data: {str(e)}")
             
@@ -169,7 +170,6 @@ def scrape_shopee_product():
             "title": product_title if product_title else "Title not found",
             "images": product_images
         }
-        
         # Take screenshot for debugging
         driver.save_screenshot(f"shopee_page_{index}.png")
         print(f"Saved screenshot to shopee_page_{index}.png")
@@ -182,11 +182,26 @@ def scrape_shopee_product():
     
     return product_list
 
-@app.route("/")
+@app.route("/scrape", methods=["GET"])
 def main():
-    product_info = scrape_shopee_product()
-    json_product_info = json.dumps(product_info, indent=2)
-    return render_template("index.html", shopeeProduct=json_product_info)
+    try:
+        product_info = scrape_shopee_product()
+        response = app.response_class(
+            response=json.dumps({
+                "status": "success",
+                "data": product_info,
+                "message": "Products retrieved successfully"
+            }, ensure_ascii=False),
+            status=200,
+            mimetype='application/json; charset=utf-8'
+        )
+        return response
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e),
+            "data": None
+        }), 500
 
 
 if __name__ == "__main__":

@@ -6,7 +6,7 @@ Scrapping shopee taiwan
 
 1. pip3 install -r requirements.txt
 2. python3 main.py
-3. Run http://127.0.0.1:5000
+3. Call API http://127.0.0.1:5000/scrape
 
 Here are some screenshots of the application:
 
