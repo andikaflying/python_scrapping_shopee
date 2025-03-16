@@ -149,7 +149,7 @@ def scrape_shopee_product():
     for site in list_site:
         driver.get(site)
         
-        time.sleep(5)
+        time.sleep(2)
         product_title = ''
         product_images = []
         try:
